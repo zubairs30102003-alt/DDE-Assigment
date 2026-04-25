@@ -1,0 +1,94 @@
+{
+  "name": "whu-brand-styler",
+  "version": "1.0.0",
+  "description": "Apply WHU Otto Beisheim School of Management branding to artifacts, documents, and presentations",
+  "author": "WHU Branding Team",
+  "created": "2025-11-11",
+  "type": "branding",
+  "category": "design-and-styling",
+  "keywords": [
+    "WHU",
+    "branding",
+    "design",
+    "typography",
+    "colors",
+    "presentation",
+    "document",
+    "styling"
+  ],
+  "compatibility": {
+    "formats": [
+      "HTML/React",
+      "Word (DOCX)",
+      "PowerPoint (PPTX)",
+      "PDF",
+      "Markdown",
+      "CSS"
+    ],
+    "integrates_with": [
+      "whu-presentation-builder",
+      "whu-branded-deck",
+      "docx",
+      "pptx",
+      "pdf"
+    ]
+  },
+  "features": [
+    "Complete WHU color palette (8 colors)",
+    "Typography system with Arial font family",
+    "Layout patterns for multiple formats",
+    "Logo placement guidelines",
+    "Accessibility compliance (WCAG AA)",
+    "Ready-to-use code examples",
+    "Multi-format support"
+  ],
+  "installation": {
+    "method": "copy",
+    "destination": "/mnt/skills/user/whu-brand-styler/",
+    "requirements": []
+  },
+  "usage": {
+    "trigger_phrases": [
+      "WHU branding",
+      "apply WHU brand",
+      "WHU colors",
+      "WHU style",
+      "WHU template"
+    ],
+    "primary_file": "SKILL.md"
+  },
+  "documentation": {
+    "main": "SKILL.md",
+    "readme": "README.md",
+    "quick_reference": "references/quick-reference.md",
+    "brand_library": "references/whu-brand-library.md",
+    "examples": "references/implementation-examples.md"
+  },
+  "assets": {
+    "logos": {
+      "full": "assets/whu-logo-full.png",
+      "icon": "assets/whu-logo-icon.png",
+      "full_base64": "assets/logo_full_base64.txt",
+      "icon_base64": "assets/logo_icon_base64.txt"
+    },
+    "colors": {
+      "whu_blue": "#2C4592",
+      "light_blue": "#808FBE",
+      "whu_red": "#E7331A",
+      "dark_gray": "#515256",
+      "medium_gray": "#A29795",
+      "light_gray": "#C7C1BF",
+      "very_light_gray": "#EEEBEA",
+      "white": "#FFFFFF",
+      "black": "#000000"
+    },
+    "fonts": {
+      "primary": "Arial",
+      "fallback": "Helvetica, sans-serif"
+    }
+  },
+  "size": {
+    "total": "21 KB (compressed)",
+    "documentation": "53 KB (uncompressed)"
+  }
+}

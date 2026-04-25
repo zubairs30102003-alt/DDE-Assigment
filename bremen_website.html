@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Bremen Scaler Index — WHU DDE</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" href="assets/whu-logo-icon.png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body.ed { min-height: 100vh; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+  @media (max-width: 720px) { .wrap { padding: 0 20px; } }
+
+  /* ── chat ── */
+  .msg { display: grid; grid-template-columns: 80px 1fr; gap: 14px; }
+  .msg-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--ink-3); padding-top: 4px; }
+  .msg-body { padding: 12px 16px; font-size: 14px; line-height: 1.55; }
+  .msg.agent .msg-body { background: var(--paper); border: 1px solid var(--line); }
+  .msg.user  .msg-body { background: var(--ink); color: var(--paper); }
+  .msg.user  .msg-tag  { color: var(--whu-red); }
+
+  .suggest {
+    padding: 6px 12px; border: 1px solid var(--line); background: var(--paper);
+    font-size: 12px; color: var(--ink-2); cursor: pointer; font-family: inherit;
+    transition: all 0.12s ease;
+  }
+  .suggest:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .agent-pip {
+    padding: 6px 10px; font-size: 11.5px; border: 1px solid var(--line);
+    background: var(--paper); margin-bottom: 6px; transition: all 0.2s;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; color: var(--ink-2);
+  }
+  .agent-pip.active { background: var(--whu-red);  color: var(--paper); border-color: var(--whu-red); }
+  .agent-pip.done   { background: var(--whu-blue); color: var(--paper); border-color: var(--whu-blue); opacity: 0.85; }
+
+  .scratch-line { padding: 5px 0; border-top: 1px dashed var(--line-2); }
+  .scratch-line:first-child { border-top: none; }
+
+  /* ── nav sticky ── */
+  nav { position: sticky; top: 0; z-index: 100; }
+
+  /* ── metric strip responsive ── */
+  .metric-strip { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+  .metric-cell  { padding: 24px; border-right: 1px solid var(--line); }
+  .metric-cell:last-child { border-right: none; }
+
+  /* ── responsive ── */
+  @media (max-width: 900px) {
+    #liveChat { grid-template-columns: 1fr !important; }
+    #liveChat aside { border-left: none !important; border-top: 1px solid var(--line); max-height: 320px; }
+    #findingsGrid > div { grid-column: span 12 !important; }
+    #agentRow   { grid-template-columns: 1fr 1fr !important; }
+    #methodSteps { grid-template-columns: 1fr 1fr !important; }
+    .metric-strip { grid-template-columns: repeat(2, 1fr); }
+    .metric-cell { border-right: 1px solid var(--line); }
+    .metric-cell:nth-child(2n) { border-right: none; }
+    .metric-cell:nth-child(n+3) { border-top: 1px solid var(--line); }
+  }
+  @media (max-width: 560px) {
+    .metric-strip { grid-template-columns: 1fr; }
+    .metric-cell  { border-right: none !important; border-top: 1px solid var(--line); }
+    .metric-cell:first-child { border-top: none; }
+  }
+</style>
+</head>
+<body class="ed">
+
+<!-- ── NAV ─────────────────────────────────────────────────────── -->
+<nav style="border-bottom: 1px solid var(--line); background: var(--paper);">
+  <div class="wrap" style="display: flex; align-items: center; justify-content: space-between; padding: 18px 40px;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <img src="assets/whu-logo-icon.png" style="height: 26px;" alt="WHU" />
+      <div style="width: 1px; height: 20px; background: var(--line-2);"></div>
+      <div style="font-size: 13.5px; font-weight: 500;">Bremen Scaler Index</div>
+      <span class="ed-chip" style="margin-left: 6px;">v1.0 · DDE SS26</span>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 13px;" id="navLinks">
+      <a href="#findings" style="color: var(--ink-2); text-decoration: none;">Findings</a>
+      <a href="#agents"   style="color: var(--ink-2); text-decoration: none;">Agents</a>
+      <a href="#chat"     style="color: var(--ink-2); text-decoration: none;">Try it</a>
+      <a href="#method"   style="color: var(--ink-2); text-decoration: none;">Method</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────────────── -->
+<section class="wrap" style="padding: 80px 40px 60px;">
+  <div style="display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;">
+    <span class="ed-chip dot">Working paper</span>
+    <span class="ed-chip">Bremen, DE</span>
+    <span class="ed-chip">1,083 firms · 2019–2024</span>
+  </div>
+
+  <h1 class="ed-display" style="font-size: clamp(56px, 9vw, 120px); margin: 0; line-height: 0.98;">
+    What makes a company<br/>
+    <em style="color: var(--whu-blue); font-style: italic;">scale</em>?
+  </h1>
+
+  <p style="font-size: 20px; line-height: 1.5; color: var(--ink-2); max-width: 720px; margin-top: 32px;">
+    We pulled five years of headcount data on every Bremen company larger than ten people,
+    enriched it with public web sources via a multi-agent pipeline, and ran the numbers.
+    <strong style="color: var(--ink);">One in nine made it.</strong>
+    Here's the anatomy — and a chatbot that can answer your follow-ups.
+  </p>
+
+  <div style="display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap;">
+    <a href="#chat"     class="ed-btn"       style="text-decoration: none;">Talk to the agents →</a>
+    <a href="#findings" class="ed-btn ghost" style="text-decoration: none;">See the findings</a>
+  </div>
+
+  <!-- big metric strip -->
+  <div style="margin-top: 72px;" class="metric-strip">
+    <div class="metric-cell">
+      <div class="ed-display" style="font-size: 64px; color: var(--whu-blue); line-height: 1;">
+        11.8<span style="font-size: 32px;">%</span>
+      </div>
+      <div style="font-size: 13px; color: var(--ink-2); margin-top: 8px;">Overall scaling rate</div>
+    </div>
+    <div class="metric-cell">
+      <div class="ed-display" style="font-size: 64px; color: var(--whu-blue); line-height: 1;">128</div>
+      <div style="font-size: 13px; color: var(--ink-2); margin-top: 8px;">Scalers identified</div>
+    </div>
+    <div class="metric-cell">
+      <div class="ed-display" style="font-size: 64px; color: var(--whu-blue); line-height: 1;">1,083</div>
+      <div style="font-size: 13px; color: var(--ink-2); margin-top: 8px;">Bremen firms studied</div>
+    </div>
+    <div class="metric-cell">
+      <div class="ed-display" style="font-size: 64px; color: var(--whu-red); line-height: 1;">5</div>
+      <div style="font-size: 13px; color: var(--ink-2); margin-top: 8px;">True gazelles (≥20% AAGR)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINDINGS ──────────────────────────────────────────────────── -->
+<section id="findings" class="wrap" style="padding: 60px 40px;">
+  <div class="ed-rule-strong" style="margin-bottom: 16px;"></div>
+  <div class="ed-eyebrow">§01 — Findings</div>
+  <h2 class="ed-display" style="font-size: 56px; margin: 14px 0 0;">Five things that move the needle.</h2>
+
+  <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; margin-top: 48px;" id="findingsGrid">
+    <!-- injected by site.js -->
+  </div>
+</section>
+
+<!-- ── AGENTS ───────────────────────────────────────────────────── -->
+<section id="agents" style="background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 80px 0;">
+  <div class="wrap" style="padding: 0 40px;">
+    <div class="ed-rule-strong" style="margin-bottom: 16px;"></div>
+    <div class="ed-eyebrow">§02 — Architecture</div>
+    <h2 class="ed-display" style="font-size: 56px; margin: 14px 0 0;">A five-agent system that reads, queries, and draws.</h2>
+    <p style="font-size: 17px; color: var(--ink-2); max-width: 720px; margin-top: 20px; line-height: 1.5;">
+      Every question is classified, dispatched to a specialist, and edited before it reaches you.
+      The production app runs on <strong>Groq · Llama 3.3-70B</strong> with LangChain RAG;
+      the live demo below uses a heuristic engine so it works straight from your browser — no API key needed.
+    </p>
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 48px;" id="agentRow"></div>
+  </div>
+</section>
+
+<!-- ── CHAT ─────────────────────────────────────────────────────── -->
+<section id="chat" style="padding: 80px 0;">
+  <div class="wrap" style="padding: 0 40px;">
+    <div class="ed-rule-strong" style="margin-bottom: 16px;"></div>
+    <div class="ed-eyebrow">§03 — The explorer</div>
+    <h2 class="ed-display" style="font-size: 56px; margin: 14px 0 0;">Ask anything. Get evidence back.</h2>
+    <p style="font-size: 15px; color: var(--ink-3); max-width: 720px; margin-top: 16px; line-height: 1.55;
+              font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em;">
+      Live demo · 1,083 rows loaded client-side · No login required
+    </p>
+
+    <!-- chat widget -->
+    <div id="liveChat" style="margin-top: 32px; border: 1px solid var(--line-2); background: var(--paper);
+                               display: grid; grid-template-columns: 1fr 320px; min-height: 560px;
+                               box-shadow: 0 30px 60px -30px rgba(14,21,48,0.18);">
+
+      <!-- chat column -->
+      <div style="display: flex; flex-direction: column; border-right: 1px solid var(--line);">
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--line);
+                    display: flex; justify-content: space-between; align-items: center;
+                    background: var(--paper-2);">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;
+                      letter-spacing: 0.1em; color: var(--ink-3);">
+            BREMEN SCALER INDEX · LIVE
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <span class="ed-chip dot">heuristic engine</span>
+            <span class="ed-chip" id="datasetChip">loading…</span>
+          </div>
+        </div>
+
+        <div id="chatLog" style="flex: 1; padding: 24px; overflow-y: auto; max-height: 520px;
+                                  display: flex; flex-direction: column; gap: 14px;">
+          <div class="msg agent">
+            <div class="msg-tag">SYSTEM</div>
+            <div class="msg-body">
+              Hello. I'm the Bremen Scaler Index assistant — five agents in a trench-coat.
+              Try one of the suggestions below, or ask anything about the 1,083 companies in our dataset.
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 16px 24px; border-top: 1px solid var(--line);">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;" id="suggestions">
+            <button class="suggest">Which legal form scales best?</button>
+            <button class="suggest">Plot scaling rate by sector</button>
+            <button class="suggest">Top 10 fastest-growing companies</button>
+            <button class="suggest">B2B vs B2C — what's the gap?</button>
+            <button class="suggest">Tell me about ArcelorMittal</button>
+          </div>
+          <form id="chatForm" style="display: flex; gap: 8px;">
+            <input id="chatInput" type="text" autocomplete="off"
+                   placeholder="Ask about Bremen's 1,083 companies…"
+                   style="flex: 1; padding: 12px 14px; border: 1px solid var(--line-2);
+                          background: var(--paper); font-size: 14px; font-family: inherit;
+                          color: var(--ink); outline: none;" />
+            <button type="submit" class="ed-btn">Send →</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- scratchpad sidebar -->
+      <aside style="background: var(--paper-2); padding: 24px; overflow-y: auto; max-height: 560px;">
+        <div class="ed-eyebrow">Agent scratchpad</div>
+        <div id="scratchpad" style="margin-top: 14px; font-family: 'JetBrains Mono', monospace;
+                                    font-size: 11px; color: var(--ink-2);">
+          <div style="color: var(--ink-3);">awaiting first message…</div>
+        </div>
+        <div class="ed-eyebrow" style="margin-top: 28px;">Agent status</div>
+        <div id="agentStatus" style="margin-top: 12px;">
+          <div class="agent-pip" data-a="router">⌥ Router</div>
+          <div class="agent-pip" data-a="text">⊕ Text</div>
+          <div class="agent-pip" data-a="code">⌘ Code</div>
+          <div class="agent-pip" data-a="visual">◫ Visual</div>
+          <div class="agent-pip" data-a="editor">✎ Editor</div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Streamlit slot -->
+    <div style="margin-top: 48px; padding: 32px; background: var(--paper-2); border: 1px dashed var(--line-2);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+        <div style="max-width: 640px;">
+          <div class="ed-eyebrow">Production app — Streamlit</div>
+          <h3 style="font-family: 'Instrument Serif', serif; font-size: 28px; margin: 8px 0 12px;">
+            The full Groq-powered version
+          </h3>
+          <p style="font-size: 14px; color: var(--ink-2); line-height: 1.55;">
+            The chat above runs entirely in your browser using the dataset loaded client-side.
+            The graded submission runs the real five-agent stack —
+            <span class="ed-mono">whu_app.py</span> on Streamlit Community Cloud with Groq + LangChain + FAISS.
+            Once deployed, paste your URL into <span class="ed-mono">STREAMLIT_URL</span> in
+            <span class="ed-mono">site.js</span> and this card flips into a live iframe.
+          </p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a id="stOpen" href="#" target="_blank" rel="noopener"
+             class="ed-btn blue" style="text-decoration: none;">Open Streamlit app →</a>
+          <a href="https://github.com/zubairs30102003-alt/DDE-Assigment" target="_blank"
+             class="ed-btn ghost" style="text-decoration: none;">GitHub repo →</a>
+        </div>
+      </div>
+      <div id="streamlitFrameWrap" style="display: none; margin-top: 24px; border: 1px solid var(--line); height: 720px;">
+        <iframe id="streamlitFrame" style="width: 100%; height: 100%; border: none;"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── METHOD ───────────────────────────────────────────────────── -->
+<section id="method" style="background: var(--paper-2); border-top: 1px solid var(--line); padding: 80px 0;">
+  <div class="wrap" style="padding: 0 40px;">
+    <div class="ed-rule-strong" style="margin-bottom: 16px;"></div>
+    <div class="ed-eyebrow">§04 — Method</div>
+    <h2 class="ed-display" style="font-size: 56px; margin: 14px 0 0;">From registry dump to multi-agent explorer.</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 48px;" id="methodSteps"></div>
+
+    <div style="margin-top: 48px; padding: 28px; background: var(--paper); border: 1px solid var(--line);
+                display: grid; grid-template-columns: 1fr 1fr; gap: 36px;">
+      <div>
+        <div class="ed-eyebrow">Scaler — defined</div>
+        <p style="font-size: 16px; line-height: 1.5; margin-top: 10px;">
+          Avg. annualised employment growth ≥ 10% over 5 years, base ≥ 10 staff (OECD).
+        </p>
+      </div>
+      <div>
+        <div class="ed-eyebrow">Gazelle — defined</div>
+        <p style="font-size: 16px; line-height: 1.5; margin-top: 10px;">
+          ≥ 20% AAGR over 3 years, base ≥ 10 staff.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ───────────────────────────────────────────────────── -->
+<footer style="background: var(--ink); color: var(--paper); padding: 48px 0;">
+  <div class="wrap" style="padding: 0 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap;">
+      <div>
+        <div class="ed-display" style="font-size: 36px; line-height: 1;">Bremen Scaler Index</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em;
+                    color: rgba(250,250,247,0.5); margin-top: 8px;">
+          WHU · DATA-DRIVEN ENTREPRENEURSHIP · SS 2026
+        </div>
+      </div>
+      <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+        <a href="https://github.com/zubairs30102003-alt/DDE-Assigment" target="_blank"
+           style="font-family: 'JetBrains Mono', monospace; font-size: 11px;
+                  color: rgba(250,250,247,0.6); text-decoration: none; letter-spacing: 0.05em;">
+          GitHub →
+        </a>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;
+                    color: rgba(250,250,247,0.4);">
+          © DDE TEAM · MMXXVI
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ── SCRIPTS ──────────────────────────────────────────────────── -->
+<script src="data.js"></script>
+<script src="companies-data.js"></script>
+<script src="agents.js"></script>
+<script src="site.js"></script>
+</body>
+</html>
