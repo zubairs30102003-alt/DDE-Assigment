@@ -169,21 +169,57 @@ function renderTopTable(t) {
 }
 
 function renderVisual(v) {
-  // Simple SVG bar chart, sorted desc
-  const rows = [...v.rows].sort((a,b)=>b.rate-a.rate);
+  const label = `<div style="font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.1em; color:var(--ink-3); margin-bottom:6px;">FIG · ${v.title.toUpperCase()}</div>`;
+  const isCount = v.rows[0]?._rawCount;
+  const valueLabel = isCount ? "companies" : "scaling rate";
+
+  if (v.chartType === "pie") {
+    // SVG pie chart
+    const total = v.rows.reduce((s, r) => s + r.rate, 0);
+    const COLORS = ["#2C4592","#E7331A","#1A2D6B","#6B7493","#3D5BA9","#9BA8C7","#0E1530","#B8C0D8","#4A6099","#8B9BB5"];
+    const cx = 130, cy = 110, R = 90;
+    let angle = -Math.PI / 2;
+    const slices = v.rows.map((r, i) => {
+      const frac = r.rate / total;
+      const a1 = angle, a2 = angle + frac * 2 * Math.PI;
+      angle = a2;
+      const x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1);
+      const x2 = cx + R * Math.cos(a2), y2 = cy + R * Math.sin(a2);
+      const large = frac > 0.5 ? 1 : 0;
+      const mid = (a1 + a2) / 2;
+      const lx = cx + (R + 16) * Math.cos(mid), ly = cy + (R + 16) * Math.sin(mid);
+      const pct = (frac * 100).toFixed(1);
+      return `<path d="M${cx},${cy} L${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2} Z" fill="${COLORS[i % COLORS.length]}" stroke="#FAFAF7" stroke-width="1.5"/>
+        ${frac > 0.06 ? `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="9" fill="#FAFAF7" font-family="JetBrains Mono,monospace">${pct}%</text>` : ""}`;
+    });
+    const legendY = 16;
+    const legend = v.rows.slice(0, 10).map((r, i) => {
+      const pct = ((r.rate / total) * 100).toFixed(1);
+      return `<rect x="274" y="${legendY + i * 18}" width="10" height="10" fill="${COLORS[i % COLORS.length]}"/>
+        <text x="290" y="${legendY + i * 18 + 9}" font-size="10.5" fill="#3B4566" font-family="Inter,sans-serif">${r.k} (${isCount ? r.rate : pct + "%"})</text>`;
+    });
+    return `${label}<svg viewBox="0 0 540 230" style="width:100%; max-width:540px;">
+      ${slices.join("")}${legend.join("")}
+      <text x="${cx}" y="${cy + R + 24}" text-anchor="middle" font-size="9.5" fill="#6B7493" font-family="JetBrains Mono,monospace">n=${v.rows.reduce((s,r)=>s+r.rate,0).toFixed(isCount?0:1)} total</text>
+    </svg>`;
+  }
+
+  // Default: horizontal bar chart
+  const rows = [...v.rows].sort((a, b) => b.rate - a.rate);
   const max = Math.max(...rows.map(r => r.rate));
-  const W = 540, BH = 22, GAP = 8, padL = 110;
+  const W = 540, BH = 22, GAP = 8, padL = 130;
   const H = rows.length * (BH + GAP) + 40;
   const bars = rows.map((r, i) => {
-    const y = 24 + i*(BH+GAP);
-    const w = ((r.rate/max) * (W - padL - 60));
+    const y = 24 + i * (BH + GAP);
+    const w = Math.max(2, (r.rate / max) * (W - padL - 70));
+    const valStr = isCount ? String(Math.round(r.rate)) : (r.rate * 100).toFixed(1) + "%";
+    const highlight = !isCount && (r.rate * 100) > 11.82;
     return `
-      <text x="${padL-8}" y="${y+BH/2+4}" text-anchor="end" font-size="11" fill="#3B4566" font-family="Inter, sans-serif">${r.k}</text>
-      <rect x="${padL}" y="${y}" width="${w}" height="${BH}" fill="${r.rate*100>11.82?'#2C4592':'#6B7493'}"/>
-      <text x="${padL+w+6}" y="${y+BH/2+4}" font-size="10.5" fill="#0E1530" font-family="JetBrains Mono, monospace">${(r.rate*100).toFixed(1)}%</text>`;
+      <text x="${padL - 8}" y="${y + BH / 2 + 4}" text-anchor="end" font-size="10.5" fill="#3B4566" font-family="Inter,sans-serif">${r.k}</text>
+      <rect x="${padL}" y="${y}" width="${w}" height="${BH}" fill="${highlight ? "#2C4592" : "#6B7493"}"/>
+      <text x="${padL + w + 6}" y="${y + BH / 2 + 4}" font-size="10" fill="#0E1530" font-family="JetBrains Mono,monospace">${valStr}</text>`;
   }).join("");
-  return `<div style="font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.1em; color:var(--ink-3); margin-bottom:6px;">FIG · ${v.title.toUpperCase()}</div>
-    <svg viewBox="0 0 ${W} ${H}" style="width:100%; max-width:${W}px;">${bars}</svg>`;
+  return `${label}<svg viewBox="0 0 ${W} ${H}" style="width:100%; max-width:${W}px;">${bars}</svg>`;
 }
 
 function renderScalar(s) {
@@ -224,10 +260,10 @@ async function handleQuestion(q) {
       } else if (result && result.kind === "scalar") {
         thinking.querySelector(".msg-body").innerHTML = renderScalar(result);
       } else {
-        // fallback: ask Claude
+        // fallback: ask text agent
         pushScratch("Code · no template hit, deferring to text", "var(--ink-3)");
         const r = await BSI.textAgent(q);
-        thinking.querySelector(".msg-body").innerHTML = escapeHTML(r.answer);
+        thinking.querySelector(".msg-body").innerHTML = renderMarkdown(r.answer);
       }
       setStatus("code", "done");
     } else if (route === "visual") {
@@ -248,7 +284,7 @@ async function handleQuestion(q) {
       const polished = await BSI.editor(r.answer);
       setStatus("editor", "done");
 
-      let html = escapeHTML(polished || r.answer);
+      let html = renderMarkdown(polished || r.answer);
       if (r.cited.length) {
         html += `<div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--line-2); font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-3);">
           <div style="margin-bottom:4px; letter-spacing:0.1em;">CITED · ${r.cited.length}</div>
@@ -266,6 +302,15 @@ async function handleQuestion(q) {
 
 function escapeHTML(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+// Simple markdown → HTML (bold, bullet lists, newlines)
+function renderMarkdown(s) {
+  return escapeHTML(s)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/^• (.+)$/gm, '<div style="padding:2px 0;">· $1</div>')
+    .replace(/\n\n/g, '<br/><br/>')
+    .replace(/\n/g, '<br/>');
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────
@@ -299,6 +344,24 @@ async function boot() {
   document.querySelectorAll(".suggest").forEach(b => {
     b.addEventListener("click", () => { input.value = b.textContent; form.requestSubmit(); });
   });
+
+  // API key input
+  const apiKeyInput = document.getElementById("apiKeyInput");
+  const apiKeyStatus = document.getElementById("apiKeyStatus");
+  if (apiKeyInput) {
+    apiKeyInput.addEventListener("input", () => {
+      const k = apiKeyInput.value.trim();
+      window.ANTHROPIC_KEY = k;
+      if (k) {
+        apiKeyStatus.textContent = "✓ Claude mode active";
+        apiKeyStatus.style.color = "var(--pos)";
+        document.getElementById("datasetChip") && (document.getElementById("datasetChip").textContent = "claude-haiku");
+      } else {
+        apiKeyStatus.textContent = "no key — heuristic mode";
+        apiKeyStatus.style.color = "var(--ink-3)";
+      }
+    });
+  }
 
   // smooth scroll
   document.querySelectorAll('#navLinks a').forEach(a => {

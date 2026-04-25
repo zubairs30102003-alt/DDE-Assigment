@@ -223,7 +223,15 @@
 
       <!-- scratchpad sidebar -->
       <aside style="background: var(--paper-2); padding: 24px; overflow-y: auto; max-height: 560px;">
-        <div class="ed-eyebrow">Agent scratchpad</div>
+        <div class="ed-eyebrow">Claude API key <span style="color:var(--ink-3); font-size:9px;">(optional — smarter answers)</span></div>
+        <input id="apiKeyInput" type="password" placeholder="sk-ant-api03-…"
+               style="width:100%; margin-top:8px; padding:7px 10px; border:1px solid var(--line-2);
+                      background:var(--paper); font-size:11px; font-family:'JetBrains Mono',monospace;
+                      color:var(--ink); outline:none; box-sizing:border-box;" />
+        <div id="apiKeyStatus" style="font-family:'JetBrains Mono',monospace; font-size:10px;
+             color:var(--ink-3); margin-top:5px;">no key — heuristic mode</div>
+
+        <div class="ed-eyebrow" style="margin-top:24px;">Agent scratchpad</div>
         <div id="scratchpad" style="margin-top: 14px; font-family: 'JetBrains Mono', monospace;
                                     font-size: 11px; color: var(--ink-2);">
           <div style="color: var(--ink-3);">awaiting first message…</div>
