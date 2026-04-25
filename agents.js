@@ -177,6 +177,8 @@ Reply with ONLY the word.`;
     // Heuristic fallback
     const ql = q.toLowerCase();
     if (/(pie|bar|chart|graph|visual|plot|draw|show me a|visualis)/.test(ql)) return "visual";
+    // "which company", "open a", "help me" → always text even if other code words present
+    if (/(which company|what company|who can|help me|open a|start a|find a company|recommend|suggest)/.test(ql)) return "text";
     if (/(top \d|fastest|most|how many|count|rate|average|group|by sector|legal form|b2b|b2c|age|size|distribution|breakdown|compare|vs |versus)/.test(ql)) return "code";
     return "text";
   }
