@@ -1,0 +1,22 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Local credentials and API keys
+.env
+.env.*
+anthropic.txt
+groq.txt
+serper.txt
+*secret*
+*token*
+*key*
+
+# Temporary Office files
+~$*
+
+# Local Streamlit state
+.streamlit/secrets.toml
