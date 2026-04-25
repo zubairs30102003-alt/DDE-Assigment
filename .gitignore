@@ -1,22 +1,19 @@
-.DS_Store
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-env/
-
-# Local credentials and API keys
-.env
-.env.*
-anthropic.txt
+# API Keys - never commit these
 groq.txt
+anthropic.txt
 serper.txt
-*secret*
-*token*
-*key*
 
-# Temporary Office files
+# Large files
+BREMEN.xlsx
+*.xlsx
+df_agent_progress.xlsx
+bremen_merged_final.xlsx
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Temp files
 ~$*
-
-# Local Streamlit state
-.streamlit/secrets.toml
+*.tmp
